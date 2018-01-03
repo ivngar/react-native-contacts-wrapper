@@ -135,19 +135,41 @@ RCT_EXPORT_METHOD(getEmail:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseR
       NSString *fullName = [self getFullNameForFirst:contact.givenName middle:contact.middleName last:contact.familyName ];
       NSArray *phoneNos = contact.phoneNumbers;
       NSArray *emailAddresses = contact.emailAddresses;
-      
+//      NSArray *postalAddresses = contact.postalAddresses;
       //Return full name
       [contactData setValue:fullName forKey:@"name"];
       
-      //Return first phone number
+      //if we have phone numbers
       if([phoneNos count] > 0) {
-        CNPhoneNumber *phone = ((CNLabeledValue *)phoneNos[0]).value;
-        [contactData setValue:phone.stringValue forKey:@"phone"];
+        NSMutableArray *jsPhoneNumbers = [NSMutableArray array];
+        for (CNPhoneNumber* p in phoneNos)
+          {
+            NSMutableDictionary* dict = @{}.mutableCopy;
+            NSLog(@"%@",p);
+            CNPhoneNumber *phone = ((CNLabeledValue *)p).value;
+            NSString *label = ((CNLabeledValue *)p).label;
+            label = [CNLabeledValue localizedStringForLabel:label];
+            [dict setValue:phone.stringValue forKey:@"number"];
+            [dict setValue:label forKey:@"number_type"];
+            [jsPhoneNumbers addObject:dict];
+          }
+        [contactData setValue:jsPhoneNumbers forKey:@"phones"];
       }
       
       //Return first email address
       if([emailAddresses count] > 0) {
-        [contactData setValue:((CNLabeledValue *)emailAddresses[0]).value forKey:@"email"];
+        NSMutableArray *jsEmails = [NSMutableArray array];
+        for (CNLabeledValue* e in emailAddresses)
+        {
+          NSMutableDictionary* dict = @{}.mutableCopy;
+          CNLabeledValue *email = ((CNLabeledValue *)e).value;
+          NSString *label = ((CNLabeledValue *)e).label;
+          label = [CNLabeledValue localizedStringForLabel:label];
+          [dict setValue:email forKey:@"address"];
+          [dict setValue:label forKey:@"address_type"];
+          [jsEmails addObject:dict];
+        }
+        [contactData setValue:jsEmails forKey:@"emails"];
       }
       
       [self contactPicked:contactData];
