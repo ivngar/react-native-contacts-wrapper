@@ -1,13 +1,13 @@
 {
-  "name": "react-native-contacts-wrapper",
-  "version": "0.2.4",
+  "name": "rn-contacts-wrapper",
+  "version": "0.2.5",
   "nativePackage": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LynxITDigital/react-native-contacts-wrapper.git"
+    "url": "git+https://github.com/ivngar/react-native-contacts-wrapper.git"
   },
   "keywords": [
     "react",
@@ -17,16 +17,17 @@
     "people"
   ],
   "author": {
-    "name": "LynxIT Digital"
+    "name": "Original from LynxIT Digital forked by Ivan Garcia"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/LynxITDigital/react-native-contacts-wrapper/issues"
+    "url": "https://github.com/ivngar/react-native-contacts-wrapper/issues"
   },
-  "homepage": "https://github.com/LynxITDigital/react-native-contacts-wrapper",
+  "homepage": "https://github.com/ivngar/react-native-contacts-wrapper",
   "maintainers": [
     {
-      "name": "Oliver Jacobs"
+      "name": "Ivan Garcia",
+      "name": "Adrià Ríos"
     }
   ]
 }
