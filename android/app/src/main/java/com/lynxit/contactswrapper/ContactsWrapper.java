@@ -1,12 +1,17 @@
 package com.lynxit.contactswrapper;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.net.URI;
@@ -30,6 +35,7 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.uimanager.ViewManager;
+import com.facebook.react.modules.core.PermissionListener;
 
 public class ContactsWrapper extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -40,8 +46,9 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
     public static final String E_CONTACT_NO_EMAIL = "E_CONTACT_NO_EMAIL";
     public static final String E_CONTACT_EXCEPTION = "E_CONTACT_EXCEPTION";
     public static final String E_CONTACT_PERMISSION = "E_CONTACT_PERMISSION";
-    private Promise mContactsPromise;
+    public static final int REQUEST_READ_CONTACTS    = 270001;
     private Activity mCtx;
+    private Promise mContactsPromise;
     private final ContentResolver contentResolver;
     private static final List<String> JUST_ME_PROJECTION = new ArrayList<String>() {{
         add(ContactsContract.Contacts.Data.MIMETYPE);
@@ -61,6 +68,26 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
     }};
     private Context context;
 
+    private PermissionListener listener = new PermissionListener()
+    {
+        public boolean onRequestPermissionsResult(final int requestCode,
+                                                  @NonNull final String[] permissions,
+                                                  @NonNull final int[] grantResults)
+        {
+            switch (requestCode)
+            {
+                case REQUEST_READ_CONTACTS:
+                    if (grantResults.length > 0
+                            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        launchPicker(mContactsPromise, CONTACT_REQUEST);
+                    }
+                    break;
+
+            }
+            return true;
+        }
+    };
+
 
     public ContactsWrapper(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -79,7 +106,16 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
 
     @ReactMethod
     public void getContact(Promise contactsPromise) {
-        launchPicker(contactsPromise, CONTACT_REQUEST);
+        mContactsPromise = contactsPromise;
+        mCtx = getCurrentActivity();
+        String[] PERMISSIONS = {Manifest.permission.READ_CONTACTS};
+        if (ContextCompat.checkSelfPermission(mCtx,
+                Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ((ReactActivity) mCtx).requestPermissions(PERMISSIONS, REQUEST_READ_CONTACTS, listener);
+        } else {
+            launchPicker(contactsPromise, CONTACT_REQUEST);
+        }
     }
 
     @ReactMethod
@@ -93,7 +129,6 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
      * @param requestCode - request code to specify what contact data to return
      */
     private void launchPicker(Promise contactsPromise, int requestCode) {
-//        this.contentResolver.query(Uri.parse("content://com.android.contacts/contacts/lookup/0r3-A7416BA07AEA92F2/3"), null, null, null, null);
         Cursor cursor = this.contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
         if (cursor != null) {
             mContactsPromise = contactsPromise;
@@ -301,3 +336,4 @@ public class ContactsWrapper extends ReactContextBaseJavaModule implements Activ
 
     }
 }
+
